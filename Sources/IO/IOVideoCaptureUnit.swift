@@ -1,29 +1,53 @@
 import AVFoundation
 import Foundation
 
-/// Configuration calback block for IOVideoUnit.
+/// Configuration calback block for IOVideoCaptureUnit.
 @available(tvOS 17.0, *)
 public typealias IOVideoCaptureConfigurationBlock = (IOVideoCaptureUnit?, IOVideoUnitError?) -> Void
 
 /// An object that provides the interface to control the AVCaptureDevice's transport behavior.
 @available(tvOS 17.0, *)
 public final class IOVideoCaptureUnit: IOCaptureUnit {
+    public typealias Output = AVCaptureVideoDataOutput
+
     #if os(iOS) || os(macOS)
     /// The default color format.
-    public static let colorFormat = kCVPixelFormatType_32BGRA
+    public static let colorFormat = kCVPixelFormatType_32ARGB
     #else
     /// The default color format.
     public static let colorFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
     #endif
 
-    typealias Output = AVCaptureVideoDataOutput
-
     /// The current video device object.
     public private(set) var device: AVCaptureDevice?
 
     /// Specifies the video capture color format.
-    /// - Warning: If a format other than kCVPixelFormatType_32BGRA is set, the multi-camera feature will become unavailable. We intend to support this in the future.
+    /// - Warning: If a format other than kCVPixelFormatType_32ARGB is set, the multi-camera feature will become unavailable. We intend to support this in the future.
     public var colorFormat = IOVideoCaptureUnit.colorFormat
+
+    /// The track number.
+    public let track: UInt8
+    /// The input data to a cupture session.
+    public private(set) var input: AVCaptureInput?
+    /// The output data to a sample buffers.
+    public private(set) var output: Output? {
+        didSet {
+            oldValue?.setSampleBufferDelegate(nil, queue: nil)
+            guard let output else {
+                return
+            }
+            output.alwaysDiscardsLateVideoFrames = true
+            #if os(iOS) || os(macOS) || os(tvOS)
+            if output.availableVideoPixelFormatTypes.contains(colorFormat) {
+                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: colorFormat)]
+            } else {
+                logger.warn("device doesn't support this color format ", colorFormat, ".")
+            }
+            #endif
+        }
+    }
+    /// The connection from a capture input to a capture output.
+    public private(set) var connection: AVCaptureConnection?
 
     #if os(iOS) || os(macOS)
     /// Specifies the videoOrientation indicates whether to rotate the video flowing through the connection to a given orientation.
@@ -58,25 +82,7 @@ public final class IOVideoCaptureUnit: IOCaptureUnit {
     }
     #endif
 
-    let track: UInt8
-    var input: AVCaptureInput?
-    var output: Output? {
-        didSet {
-            guard let output else {
-                return
-            }
-            output.alwaysDiscardsLateVideoFrames = true
-            #if os(iOS) || os(macOS) || os(tvOS)
-            if output.availableVideoPixelFormatTypes.contains(colorFormat) {
-                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: colorFormat)]
-            } else {
-                logger.warn("device doesn't support this color format ", colorFormat, ".")
-            }
-            #endif
-        }
-    }
-    var connection: AVCaptureConnection?
-    private var dataOutput: IOVideoCaptureUnitVideoDataOutputSampleBuffer?
+    private var dataOutput: IOVideoCaptureUnitDataOutput?
 
     init(_ track: UInt8) {
         self.track = track
@@ -96,7 +102,7 @@ public final class IOVideoCaptureUnit: IOCaptureUnit {
         input = try AVCaptureDeviceInput(device: device)
         output = AVCaptureVideoDataOutput()
         #if os(iOS)
-        if let output, #available(iOS 13, *), let port = input?.ports.first(where: { $0.mediaType == .video && $0.sourceDeviceType == device.deviceType && $0.sourceDevicePosition == device.position }) {
+        if let output, let port = input?.ports.first(where: { $0.mediaType == .video && $0.sourceDeviceType == device.deviceType && $0.sourceDevicePosition == device.position }) {
             connection = AVCaptureConnection(inputPorts: [port], output: output)
         } else {
             connection = nil
@@ -178,14 +184,13 @@ public final class IOVideoCaptureUnit: IOCaptureUnit {
             #endif
             setFrameRate(videoUnit.frameRate)
         }
-        dataOutput = videoUnit?.makeVideoDataOutputSampleBuffer(track)
+        dataOutput = videoUnit?.makeDataOutput(track)
         output?.setSampleBufferDelegate(dataOutput, queue: videoUnit?.lockQueue)
     }
 }
 
-// swiftlint:disable type_name
 @available(tvOS 17.0, *)
-final class IOVideoCaptureUnitVideoDataOutputSampleBuffer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+final class IOVideoCaptureUnitDataOutput: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let track: UInt8
     private let videoMixer: IOVideoMixer<IOVideoUnit>
 
@@ -195,7 +200,6 @@ final class IOVideoCaptureUnitVideoDataOutputSampleBuffer: NSObject, AVCaptureVi
     }
 
     func captureOutput(_ captureOutput: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        videoMixer.append(sampleBuffer, track: track, isVideoMirrored: connection.isVideoMirrored)
+        videoMixer.append(track, sampleBuffer: sampleBuffer)
     }
 }
-// swiftlint:enable type_name
