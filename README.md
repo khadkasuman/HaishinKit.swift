@@ -14,13 +14,12 @@
 In development for 10 years, with 2,778 commits and 163 releases. Thank you. Since Aug 2, 2015.
 
 ## 💖 Sponsors
-Do you need additional support? Technical support on Issues and Discussions is provided only to contributors and academic researchers of HaishinKit. By becoming a sponsor, we can provide the support you need.
+Do you need additional support? Technical support on Issues and Discussions is provided only to contributors and academic researchers of HaishinKit. By becoming a sponsor, I can provide the support you need.
 
 Sponsor: [$50 per month](https://github.com/sponsors/shogo4405): Technical support via GitHub Issues/Discussions with priority response.
 
 ## 💬 Communication
 * GitHub Issues and Discussions are open spaces for communication among users and are available to everyone as long as [the code of conduct](https://github.com/HaishinKit/HaishinKit.swift?tab=coc-ov-file) is followed.
-* Whether someone is a contributor to HaishinKit is mainly determined by their GitHub profile icon. If you are using the default icon, there is a chance your input might be overlooked, so please consider setting a custom one. It could be a picture of your pet, for example. Personally, I like cats.
 * If you want to support e-mail based communication without GitHub.
   * Consulting fee is [$50](https://www.paypal.me/shogo4405/50USD)/1 incident. I'm able to response a few days.
 
@@ -31,38 +30,12 @@ Project name    |Notes       |License
 [HaishinKit for Flutter.](https://github.com/HaishinKit/HaishinKit.dart)|Camera and Microphone streaming library via RTMP for Flutter.|[BSD 3-Clause "New" or "Revised" License](https://github.com/HaishinKit/HaishinKit.dart/blob/master/LICENSE.md)
 
 ## 🎨 Features
-### ✏️ [RTMP](RTMPHaishinKit/Sources/Docs.docc/index.md)
-- [x] FMLE-compatible Authentication
-- [x] Ingest
-  - H264, HEVC, AAC and OPUS support.
-- [x] _Egress (Beta)_
-  - H264, HEVC and AAC support.
-- [ ] Action Message Format
-  - [x] AMF0
-  - [ ] AMF3
-- [x] SharedObject
-- [x] RTMPS
-  - [x] Native (RTMP over SSL/TLS)
-- [x] [Enhanced RTMP](RTMPHaishinKit/Sources/Docs.docc/E-RTMP.md)
-
-### ✏️ [SRT](SRTHaishinKit/Sources/Docs.docc/index.md)
-- Ingest
-  - H264, HEVC and AAC support.
-- _Egress (Beta)_
-  - H264, HEVC and AAC support.
-- SRT Mode
-  - [x] caller
-  - [x] listener
-  - [x] rendezvous
-
-### ✏️ [WebRTC(alpha)](RTCHaishinKit/Sources/Docs.docc/index.md)
-- [] WHEP
-- [x] WHIP
-  - H264, OPUS
-
-### ✏️ [MOQT(alpha)](MoQTHaishinKit/Sources/Docs.docc/index.md)
-> [!NOTE]
-> I am working on a preliminary implementation of MOQT for research purposes. If you're interested, please check out the repository.
+### ✏️ Protocols
+- [RTMP](RTMPHaishinKit/Sources/Docs.docc/index.md)
+- [SRT](SRTHaishinKit/Sources/Docs.docc/index.md)
+- [WHIP(alpha)](RTCHaishinKit/Sources/Docs.docc/index.md)
+- [MOQT(alpha)](MoQTHaishinKit/Sources/Docs.docc/index.md)
+  - I am working on a preliminary implementation of MOQT for research purposes. If you're interested, please check out the repository.
 
 ### 📹 Multi Streaming.
 Starting from version 2.0.0, multiple streams are supported, allowing live streaming to separate services. Views also support this, enabling the verification of raw video data
