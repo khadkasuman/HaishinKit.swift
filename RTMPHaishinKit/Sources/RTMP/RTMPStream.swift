@@ -564,6 +564,9 @@ public actor RTMPStream {
                     if let code = response.status?.code, expectedResponse?.rawValue == code {
                         continuation?.resume(returning: response)
                         continuation = nil
+                    } else {
+                        continuation?.resume(throwing: Error.requestFailed(response: response))
+                        continuation = nil
                     }
                 default:
                     continuation?.resume(throwing: Error.requestFailed(response: response))
@@ -573,8 +576,7 @@ public actor RTMPStream {
                     statusContinuation?.yield($0)
                 }
             default:
-                continuation?.resume(throwing: Error.requestFailed(response: response))
-                continuation = nil
+                logger.info(message)
             }
         case let message as RTMPAudioMessage:
             append(message, type: type)
